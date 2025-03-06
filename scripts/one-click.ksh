@@ -1,0 +1,271 @@
+#!/bin/ksh
+export AWS_ACCESS_KEY_ID="ASIA6IESFAOZSF57OVAJ"
+export AWS_SECRET_ACCESS_KEY="lVvxSBN5Mwtk2Y+xw7kMWBB+bGhiSYdyMV4RWL/H"
+export AWS_SESSION_TOKEN="IQoJb3JpZ2luX2VjEN///////////wEaCXVzLWVhc3QtMSJHMEUCIQCOJrLnF75baRRCvME/z0vh/R7yXitv9Zm4O4YohVnJ0gIgeatvbq4guDYGqh2oWqlEFDfJJctymi26jgcOumOqzgoqtwMIKBAEGgw5Nzk1NTkwNTYzMDciDMEPQkDVyX1GDzFHeSqUA2OpNPZZHPI7EZCzkX+95hGkLaQrm+N6W/78/bnLbZdf0k1Uly9dqAo6n4Wf4SO80wGHUnxA0KcrNzWrd5tZDBX3u5G9dAX9Ux85myBZPcazxXZrA3WTHyQRoCeyw86ximkqp5tDXsGHUYEuMErVtvTlK/KAMLX1C4U2pLV8DbwACLaRfqVEpprY7GLKsaJF4wWVU/WUd4Bi2mEg14xoSnqSo+DEEaDfAkBP+xNrmuPFBI0cPkQSaoOQsFfEd7hx84sCB7OLWzo+fPru+8avNX60R6OdSQBarGwpM+GkltJOYUMk93tISpuhH3dZXsYRWQ9QhYBTms3NN/01pJszv2XG5FxWxyJBVl/Ufj9DCdSdvR7DyeJtxrKdcvdTMimjAf2vLXlfmgDH/5YZZKBhV2rsADRgshinZQo92GGPoGCcEfyVwk9lqaKTVVfH4vKk8aGMmrJ8s5dE8CJVm4pXiE/kJUb+b9fFzKYBqQWAQid+voAZRcx1K1Gj3uVHakanzloHqfPG+3iESOLnQXAz0iba3khrMJuOpb4GOqYBtlV3HsO63vkXk4YKr2bTOh5lY8SDWYZvC+JYVv87SefRCkMVIuTt2eAhppCBC2H10i2Upcsw00uaCtXySdT3mWBXIU5UFpAl/grxm/d9YXTEigkSboe0QOsyT6nT4iDCRFKlUmitG5giVwIy5iStUuZzTIIOZ3ibYVyMPma8x3yv+BOymSypbVC4ci8h+ThNGbvkA/w7ocRcCbUKqFTQMXQKqCACoQ=="
+# Variables
+INFRA_STACK_NAME="MAAP-Cohere-Stack-Infrastructure"
+EC2_STACK_NAME="MAAP-Cohere-Stack-Compute"
+ECRImageURI="public.ecr.aws/s2e1n3u8/mongodb-cohere:latest"
+INFRA_TEMPLATE_FILE="deploy-infra.yaml"
+EC2_TEMPLATE_FILE="deploy-ec2.yaml"
+
+AWS_REGION=$(aws configure get region)
+AWS_Zone="a"  #Subnet and Server AWS Availability Zone
+AvailabilityZone="$AWS_REGION$AWS_Zone"
+EC2_INSTANCE_TYPE="t3.xlarge"
+ServerInstanceProfile="MAAPCohereServerInstanceProfile"
+
+INITIAL_INSTANCE_COUNT="1"
+VolumeSize=100
+
+GIT_REPO_URL="https://github.com/mongodb-partners/maap-cohere-qs.git"
+
+TAG_NAME="MAAP-Cohere-One-Click"
+ENDPOINT_NAME="One-Click-Endpoint-Cohere"
+
+MongoDBClusterName="MongoDBCohereV1"
+MongoDBUserName="admin"
+MongoDBPassword="pass123"
+APIPUBLICKEY="upcyijky"
+APIPRIVATEKEY="d8ca6b09-bbba-4a8e-b784-a906c11c12bb"
+GROUPID="62c679e0f373002ad29fdc35"
+
+
+# Log file setup
+LOG_FILE="./logs/one-click-deployment.log"
+EC2_LIVE_LOG_FILE="./logs/ec2-live-logs.log"
+
+# Initialize log
+mkdir -p logs
+
+log_message() {
+    print "$(date '+%Y-%m-%d %H:%M:%S'): $1" | tee -a $LOG_FILE
+}
+
+# Log start of deployment
+log_message "Deployment script started."
+log_message "AWS Region: $AWS_REGION"
+
+create_key()
+{
+  # Parameters
+  KEY_NAME="MAAPCohereKeyV1"  # You can change the key pair name as desired
+  KEY_FILE="${KEY_NAME}.pem"
+
+  # Check if the key pair exists
+  EXISTING_KEY=$(aws ec2 describe-key-pairs --key-names "$KEY_NAME" --query "KeyPairs[0].KeyName" --output text 2>/dev/null)
+
+  if [[ "$EXISTING_KEY" == "$KEY_NAME" ]]; then
+    log_message "Key pair $KEY_NAME already exists. Using existing key."
+  else
+    # Create the key pair
+    aws ec2 create-key-pair --key-name "$KEY_NAME" --query "KeyMaterial" --output text > "$KEY_FILE"
+    chmod 400 "$KEY_FILE"
+    log_message "Key pair created and saved to $KEY_FILE"
+  fi
+}
+
+deploy_infra()
+{
+  # Deploy the CloudFormation stack
+  log_message "Deploying CloudFormation stack: $INFRA_STACK_NAME..."
+  log_message "$(aws cloudformation deploy \
+    --template-file "$INFRA_TEMPLATE_FILE" \
+    --stack-name "$INFRA_STACK_NAME" \
+    --region "$AWS_REGION" \
+    --parameter-overrides \
+      AvailabilityZone="$AvailabilityZone" \
+      ServerInstanceProfile="$ServerInstanceProfile" \
+    --capabilities CAPABILITY_NAMED_IAM)"
+
+  # Check deployment status
+  if [[ $? -ne 0 ]]; then
+    log_message "Error: Failed to deploy the stack."
+    exit 1
+  fi
+
+  log_message "CloudFormation stack $INFRA_STACK_NAME deployed successfully."
+
+  # Retrieve outputs for reference
+  log_message "Fetching stack outputs..."
+  log_message "\n$(aws cloudformation describe-stacks \
+    --stack-name "$INFRA_STACK_NAME" \
+    --query "Stacks[0].Outputs" \
+    --output table --region "$AWS_REGION")"
+
+  # Retrieve and store stack outputs in variables
+
+  VPC_ID=$(aws cloudformation describe-stacks \
+    --stack-name "$INFRA_STACK_NAME" \
+    --query "Stacks[0].Outputs[?OutputKey=='VPCID'].OutputValue" \
+    --output text --region "$AWS_REGION")
+
+  SUBNET_ID=$(aws cloudformation describe-stacks \
+    --stack-name "$INFRA_STACK_NAME" \
+    --query "Stacks[0].Outputs[?OutputKey=='SubnetID'].OutputValue" \
+    --output text --region "$AWS_REGION")
+
+  SECURITY_GROUP_ID=$(aws cloudformation describe-stacks \
+    --stack-name "$INFRA_STACK_NAME" \
+    --query "Stacks[0].Outputs[?OutputKey=='SecurityGroupID'].OutputValue" \
+    --output text --region "$AWS_REGION")
+
+  IAM_ROLE_ARN=$(aws cloudformation describe-stacks \
+    --stack-name "$INFRA_STACK_NAME" \
+    --query "Stacks[0].Outputs[?OutputKey=='IAMRoleARN'].OutputValue" \
+    --output text --region "$AWS_REGION")
+
+  IAM_INSTANCE_PROFILE=$(aws cloudformation describe-stacks \
+    --stack-name "$INFRA_STACK_NAME" \
+    --query "Stacks[0].Outputs[?OutputKey=='IAMInstanceProfile'].OutputValue" \
+    --output text --region "$AWS_REGION")
+
+  # Check if the variables were successfully populated
+  if [[ -z "$VPC_ID" || -z "$SUBNET_ID" || -z "$SECURITY_GROUP_ID" || -z "$IAM_ROLE_ARN" || -z "$IAM_INSTANCE_PROFILE" ]]; then
+    log_message "Error: One or more stack outputs were not retrieved correctly."
+    exit 1
+  fi
+
+  # log_message the retrieved variables for confirmation
+  log_message "INFRA Stack Outputs:"
+  log_message "VPC ID: $VPC_ID"
+  log_message "Subnet ID: $SUBNET_ID"
+  log_message "Security Group ID: $SECURITY_GROUP_ID"
+  log_message "IAM Role ARN: $IAM_ROLE_ARN"
+  log_message "IAM Instance Profile: $IAM_INSTANCE_PROFILE"
+
+}
+
+
+deploy_ec2()
+{
+  typeset -A ami_map # Image name: "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-20240927" (Ubuntu Server 22.04 LTS (HVM) SSD Volume Type)
+  ami_map=(
+      ["ap-northeast-1"]="ami-0ac6b9b2908f3e20d"
+      ["ap-northeast-2"]="ami-042e76978adeb8c48"
+      ["ap-south-1"]="ami-09b0a86a2c84101e1"
+      ["ap-southeast-1"]="ami-03fa85deedfcac80b"
+      ["ap-southeast-2"]="ami-040e71e7b8391cae4"
+      ["ca-central-1"]="ami-00498a47f0a5d4232"
+      ["eu-central-1"]="ami-0745b7d4092315796"
+      ["eu-north-1"]="ami-089146c5626baa6bf"
+      ["eu-west-1"]="ami-0a422d70f727fe93e"
+      ["eu-west-2"]="ami-03ceeb33c1e4abcd1"
+      ["eu-west-3"]="ami-07db896e164bc4476"
+      ["sa-east-1"]="ami-036f48ec20249562a"
+      ["us-east-1"]="ami-005fc0f236362e99f"
+      ["us-east-2"]="ami-00eb69d236edcfaf8"
+      ["us-west-1"]="ami-0819a8650d771b8be"
+      ["us-west-2"]="ami-0b8c6b923777519db"
+  )
+
+  # Validate the region
+  if [[ -z "${ami_map[$AWS_REGION]}" ]]; then
+      log_message "Error: AMI ID not available for region $AWS_REGION."
+      exit 1
+  fi
+
+  # Get the AMI ID for the current region
+  AMI_ID=${ami_map[$AWS_REGION]}
+  log_message "AMI ID: $AMI_ID"
+
+  # Deploy the CloudFormation stack
+  log_message "Deploying CloudFormation stack: $EC2_STACK_NAME..."
+  log_message "$(aws cloudformation create-stack \
+    --stack-name "$EC2_STACK_NAME" \
+    --template-body "file://$EC2_TEMPLATE_FILE" \
+    --parameters \
+      ParameterKey=KeyName,ParameterValue="$KEY_NAME" \
+      ParameterKey=SubnetId,ParameterValue="$SUBNET_ID" \
+      ParameterKey=AMIId,ParameterValue="$AMI_ID" \
+      ParameterKey=SecurityGroupId,ParameterValue="$SECURITY_GROUP_ID" \
+      ParameterKey=IAMInstanceProfile,ParameterValue="$IAM_INSTANCE_PROFILE" \
+      ParameterKey=GitRepoURL,ParameterValue="$GIT_REPO_URL" \
+      ParameterKey=MongoDBClusterName,ParameterValue="$MongoDBClusterName" \
+      ParameterKey=MongoDBUserName,ParameterValue="$MongoDBUserName" \
+      ParameterKey=MongoDBPassword,ParameterValue="$MongoDBPassword" \
+      ParameterKey=APIPUBLICKEY,ParameterValue="$APIPUBLICKEY" \
+      ParameterKey=APIPRIVATEKEY,ParameterValue="$APIPRIVATEKEY" \
+      ParameterKey=EndpointName,ParameterValue="$ENDPOINT_NAME" \
+      ParameterKey=AWSRegion,ParameterValue="$AWS_REGION" \
+      ParameterKey=InstanceType,ParameterValue="$EC2_INSTANCE_TYPE" \
+      ParameterKey=AvailabilityZone,ParameterValue="$AvailabilityZone" \
+      ParameterKey=VolumeSize,ParameterValue=$VolumeSize \
+      ParameterKey=ECRImageURI,ParameterValue=$ECRImageURI \
+      ParameterKey=GROUPID,ParameterValue="$GROUPID")"
+
+
+  log_message "CloudFormation stack creation initiated. Waiting for stack to complete..."
+
+  # Wait for stack creation to complete
+  log_message "$(aws cloudformation wait stack-create-complete --stack-name "$EC2_STACK_NAME" --region "$AWS_REGION")"
+
+  if [ $? -ne 0 ]; then
+    log_message "Error: Stack creation failed."
+    exit 1
+  fi
+
+  log_message "EC2 Deployment complete."
+
+  # Retrieve stack outputs
+  log_message "Retrieving stack outputs..."
+  log_message "\n$(aws cloudformation describe-stacks \
+    --stack-name "$EC2_STACK_NAME" \
+    --query "Stacks[0].Outputs" \
+    --output table)"
+
+
+
+  URL=$(aws cloudformation describe-stacks \
+    --stack-name "$EC2_STACK_NAME" \
+    --query "Stacks[0].Outputs[?OutputKey=='EC2PublicIP'].OutputValue" \
+    --output text)
+
+  FULL_URL="http://$URL:8501"
+
+  log_message "The application will be available at $FULL_URL once all the deployment is complete."
+
+}
+
+
+log_ec2_message() {
+    print "$(date '+%Y-%m-%d %H:%M:%S'): $1" | tee -a $EC2_LIVE_LOG_FILE
+}
+# Function to read logs from EC2
+
+read_logs() {
+  log_message "Starting to read logs from EC2 $URL..."   
+  sleep 30
+  ssh -o StrictHostKeyChecking=no -i "$KEY_FILE" "ubuntu@$URL" "tail -f -n +1 deployment.log" | while read -r line; do
+    log_ec2_message "$line"
+  done &
+
+  SSH_PID=$!
+}
+
+
+create_key
+
+deploy_infra
+
+deploy_ec2
+
+# Start reading EC2 logs
+read_logs
+
+
+# Monitor URL status in the foreground
+while true; do
+  if curl --silent --head --fail "$FULL_URL"; then
+    log_message "The application is now live at $FULL_URL. Launching..."
+    # Launch the URL in the default web browser
+    open "$FULL_URL" &>/dev/null || xdg-open "$FULL_URL" || log_message "Please open $FULL_URL in your browser."
+    sleep 30
+    kill "$SSH_PID" &>/dev/null
+    log_message "Completed."
+    break
+  else
+    log_message "Waiting for the application to be up..."
+    sleep 60  # Wait for 60 seconds before checking again
+  fi
+done
