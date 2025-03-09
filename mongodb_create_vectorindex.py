@@ -43,8 +43,8 @@ def create_and_wait_for_search_index(collection, index_model):
 
 # Initialize MongoDB client
 client = MongoClient(MONGODB_URI)
-db = client["travel_agency"]
-collection = db["trip_recommendation"]
+db = client["asset_management_use_case"]
+collection = db["market_reports"]
 
 # Load data from file
 try:

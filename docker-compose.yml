@@ -1,0 +1,7 @@
+services:
+  logger:
+    image: public.ecr.aws/s2e1n3u8/mongodb-cohere:latest
+    env_file:
+      - .env
+    environment:
+      - PORT=8501

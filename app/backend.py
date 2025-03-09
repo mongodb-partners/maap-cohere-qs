@@ -21,7 +21,7 @@ class CohereChat:
         load_dotenv(dotenv_path=env_path)
 
         # Ensure the required environment variables are set
-        required_env_vars = ["COHERE_API_KEY", "HF_TOKEN", "MONGO_URI"]
+        required_env_vars = ["COHERE_API_KEY", "MONGO_URI"]
         for var in required_env_vars:
           if var not in os.environ:
             raise EnvironmentError(f"Missing required environment variable: {var}")

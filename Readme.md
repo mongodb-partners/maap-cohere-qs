@@ -4,7 +4,7 @@ This repository contains a demo application showcasing the integration with Cohe
 
 ## Architecture Diagram
 
-![Architecture Diagram](arch_diagram.png)
+![Architecture Diagram](util/arch_diagram.png)
 
 The architecture diagram above illustrates the flow and components of the application:
 
