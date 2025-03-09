@@ -1,8 +1,6 @@
 __pycache__
-scripts/.env
 venv/
-scripts/*.pem
 logs/
 .env
-MAAPCohereKeyV1.pem
+*.pem
 one-click.ksh
