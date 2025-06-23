@@ -10,7 +10,7 @@ import json
 load_dotenv()
 
 # Constants
-MONGODB_URI = os.getenv("MONGODB_URI")
+MONGODB_URI = "mongodb+srv://cohere:pass123@demo.fmxyq.mongodb.net/" #os.getenv("MONGO_URI")
 POLL_INTERVAL = 5  # seconds
 
 
@@ -42,6 +42,7 @@ def create_and_wait_for_search_index(collection, index_model):
 
 
 # Initialize MongoDB client
+print("MongoDB URI -- ", MONGODB_URI)
 client = MongoClient(MONGODB_URI)
 db = client["asset_management_use_case"]
 collection = db["market_reports"]
@@ -82,32 +83,30 @@ index_models = [
         "collection": "market_reports",
         "index_model": SearchIndexModel(
             definition={
-                {
-                    "fields": [
-                        {
-                            "type": "vector",
-                            "path": "embedding",
-                            "numDimensions": 1024,
-                            "similarity": "cosine"
-                        },
-                        {
-                            "type": "filter",
-                            "path": "key_metrics.p_e_ratio"
-                        },
-                        {
-                            "type": "filter",
-                            "path": "key_metrics.market_cap"
-                        },
-                        {
-                            "type": "filter",
-                            "path": "key_metrics.dividend_yield"
-                        },
-                        {
-                            "type": "filter",
-                            "path": "key_metrics.current_stock_price"
-                        }
-                    ]
-                }
+                "fields": [
+                    {
+                        "type": "vector",
+                        "path": "embedding",
+                        "numDimensions": 1024,
+                        "similarity": "cosine"
+                    },
+                    {
+                        "type": "filter",
+                        "path": "key_metrics.p_e_ratio"
+                    },
+                    {
+                        "type": "filter",
+                        "path": "key_metrics.market_cap"
+                    },
+                    {
+                        "type": "filter",
+                        "path": "key_metrics.dividend_yield"
+                    },
+                    {
+                        "type": "filter",
+                        "path": "key_metrics.current_stock_price"
+                    }
+                ]
             },
             name="vector_index",
             type="vectorSearch",
