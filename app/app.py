@@ -1,5 +1,5 @@
 import streamlit as st
-from app.backend import CohereChat
+from backend import CohereChat
 
 # Set page configuration to make sidebar non-collapsible
 st.set_page_config(page_title="Stocks Recommender", initial_sidebar_state="expanded", layout="wide")
@@ -9,6 +9,7 @@ tab1, tab2 = st.tabs(["Architecture Diagram", "Stock Recommender"])
 
 with tab1:
     st.image("arch_diagram.png", caption="Architecture Diagram", use_column_width=True)
+    pass
 
 with tab2:
     # st.header("Stock Recommender")
