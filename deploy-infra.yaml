@@ -74,23 +74,15 @@ Resources:
       GroupDescription: "Security group for MAAP-Cohere-Stack"
       VpcId: !Ref VPC
       SecurityGroupIngress:
-        - CidrIp: 10.0.0.0/16  # Only allow traffic from within VPC
-          IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-        - CidrIp: 10.0.0.0/16
-          IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-        - CidrIp: 10.0.0.0/16
-          IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-      SecurityGroupEgress:
-        - CidrIp: 10.0.0.0/16
+        - CidrIp: 0.0.0.0.0/0
           IpProtocol: tcp
           FromPort: 0
           ToPort: 65535
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: -1
+          FromPort: -1 
+          ToPort: -1
       Tags:
         - Key: Name
           Value: MAAPCohereSG
@@ -142,3 +134,15 @@ Outputs:
   IAMInstanceProfile:
     Value: !Ref InstanceProfile
     Description: "IAM Instance Profile Name"
+
+
+
+
+
+
+
+
+
+
+
+

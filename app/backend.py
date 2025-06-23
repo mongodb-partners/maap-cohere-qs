@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 # Specify the path to your .env file
-env_path = Path('scripts/.env')
+env_path = Path('.env')
 
 DATABASE = "asset_management_use_case"
 COLLECTION = "market_reports"

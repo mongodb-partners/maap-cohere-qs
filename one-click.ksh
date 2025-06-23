@@ -1,7 +1,7 @@
 #!/bin/ksh
-export AWS_ACCESS_KEY_ID="ASIA6IESFAOZYVBBOZQA"
-export AWS_SECRET_ACCESS_KEY="lN+5/uCYM/Kt0AMonWrY6EM5vCtVk99fm3prJd0U"
-export AWS_SESSION_TOKEN="IQoJb3JpZ2luX2VjEM7//////////wEaCXVzLWVhc3QtMSJIMEYCIQDBN5f0HmLKpOBew77iN4gnMab4ifNQ6JKLrP780ZrOgAIhAONc9qiVEi4Cm9xIF7ixUsad+j8LpRxQt+a0yVILCgQhKsADCLf//////////wEQBBoMOTc5NTU5MDU2MzA3IgzMMVSk7NYuMjtlxvIqlAMY6PZG2UoNhKlbaQwrx9e918hI8WPxau3Vf14Mt7kaxfIj9HnLqtKwNmLmKxo7QMNB1Rw8WZhjQSdP+6OQM6stS6JAIWoPkYROBOGeDK8cqeKGKcjq0zUhu/X4XIPRQwlFNGMpS/wrQFqkCB3Cd+6/oz7KCci+hATpYe7M2SV23LTEefkeQ/YkmUpmsgW6PC9bD8p3QjavAkk6AFRk2mJG2oFGtFV2n9MkZ11TO0UyaN7yFRXBaR/grmUvBLQ1HJ8xQK+r9V17UApptOQOhwuH4kRrGjTwbI8pIrIAVZLGKY/0mqXT2dgLAi49t7Rn1xozV4ONNfL8mENQye62RZH4ID+ra+VaJDf6EKrFEAHsjH0nE0WQf8FlLern/Fw0O2nf4YXwbtS80HsvVCekYTiNZ/bRhp7v4JuQflklhAR9pdNqnJgBFTMsdSOA0ObSKyM0RWB4p8GyW7xEqRlc9uCerTblHcV8dZzVexUshk4SXXssvDq8iJxbE41vRtCnfeoVs2LPxhkQw4NoTSSDkicDCQTbVTDd69PCBjqlAbqixM1MU5YrEZg+eDwOyH9N5W5Pth2qwRzE9GwR/FVJkE7QKG2llcLz1YUri3mKBi4SV3FitEdNUGjVq7d1WY8oG/WVgw1pD9VZlwzB2QRLqJR5OvVno0ZDlU5O3poGcxNFUCiuedmun8sveCuPWky/z9dgC2605tZ3xD46ShJ0GXfUTpJ8hKuenNq1VLqJGJH5ixWzuNojJvT9kQGmM6PhQNLlwg=="
+export AWS_ACCESS_KEY_ID="*********************"
+export AWS_SECRET_ACCESS_KEY="*********************"
+export AWS_SESSION_TOKEN="*********************"
 
 # Variables
 INFRA_STACK_NAME="MAAP-Cohere-Stack-Infrastructure"
@@ -24,13 +24,13 @@ GIT_REPO_URL="https://github.com/mongodb-partners/maap-cohere-qs.git"
 TAG_NAME="MAAP-Cohere-One-Click"
 ENDPOINT_NAME="One-Click-Endpoint-Cohere"
 
-MongoDBClusterName="MongoDBCohereV2"
+MongoDBClusterName="MongoDBCohereV1"
 MongoDBUserName="cohere"
 MongoDBPassword="pass123"
-APIPUBLICKEY="tvzvrtiz"
-APIPRIVATEKEY="45be0a85-6450-40c5-a1c4-008ad08d1edc"
-GROUPID="62c679e0f373002ad29fdc35"
-COHEREAPIKEY="ubhSx2oDueOsCfcvXGEsAPsYLZSw1h0FBOThoTBj"
+APIPUBLICKEY="**************"
+APIPRIVATEKEY="**************"
+GROUPID="**************"
+COHEREAPIKEY="**************"
 
 # Log file setup
 LOG_FILE="./logs/one-click-deployment.log"

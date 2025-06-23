@@ -3,4 +3,5 @@ venv/
 logs/
 .env
 *.pem
-one-click.ksh
+
+cohere-qs/*
