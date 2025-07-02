@@ -14,6 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Command to run the application
-CMD ["streamlit", "run", "app.py", "--server.port=8080"]
+# CMD ["streamlit", "run", "app.py", "--server.port=8080"]
+CMD ["python", "main.py"]
 
 EXPOSE 8080
