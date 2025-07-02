@@ -15,3 +15,5 @@ COPY . .
 
 # Command to run the application
 CMD ["streamlit", "run", "app.py"]
+
+EXPOSE 8501
