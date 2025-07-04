@@ -1,2 +1,9 @@
 envSecrets:
-    APP_SECRET: mysecrets
+    COHERE_API_KEY: mysecrets
+    HF_TOKEN: mysecrets
+    MONGO_URI: mysecrets
+    DATABASE_NAME: mysecrets
+    COLLECTION_NAME: mysecrets
+    API_PUBLIC_KEY: mysecrets
+    API_PRIVATE_KEY: mysecrets
+    GROUP_ID: mysecrets
