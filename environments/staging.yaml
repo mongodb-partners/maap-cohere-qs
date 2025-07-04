@@ -1,0 +1,2 @@
+envSecrets:
+    APP_SECRET: mysecrets
