@@ -35,7 +35,7 @@ steps:
     add_repos: [mongodb=https://10gen.github.io/helm-charts]
     namespace: maap
     release: cohere
-    values: arch=arm64,image.tag=git-${DRONE_COMMIT_SHA:0:7},image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/maap/${DRONE_REPO_NAME},ingress.enabled=true,ingress.hosts[0]=cohere.maap.staging.corp.mongodb.com,mesh.enabled=true,resources.limits.cpu=1000m,resources.limits.memory=2Gi,resources.requests.cpu=1000m,resources.requests.memory=4Gi, 
+    values: arch=arm64,image.tag=git-${DRONE_COMMIT_SHA:0:7},image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/maap/${DRONE_REPO_NAME},ingress.enabled=true,ingress.hosts[0]=cohere.maap.staging.corp.mongodb.com,mesh.enabled=true,resources.limits.cpu=1000m,resources.limits.memory=6Gi,resources.requests.cpu=1000m,resources.requests.memory=4Gi, 
     api_server: https://api.staging.corp.mongodb.com
     kubernetes_token:
       from_secret: staging_kubernetes_token
